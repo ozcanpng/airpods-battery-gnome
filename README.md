@@ -101,14 +101,14 @@ gnome-extensions pack --force --out-dir=dist --extra-source=icons --extra-source
 ### 3. Install and enable it
 
 ```bash
-gnome-extensions install --force dist/airpods-battery@ozcanpng.shell-extension.zip
+gnome-extensions install --force dist/airpods-battery@ozcanpng.dev.shell-extension.zip
 ```
 
 On X11, press `Alt+F2`, enter `r`, and press Enter. On Wayland, log out and
 back in. Then enable the extension:
 
 ```bash
-gnome-extensions enable airpods-battery@ozcanpng
+gnome-extensions enable airpods-battery@ozcanpng.dev
 ```
 
 Open the extension menu in the top panel to see status and battery details.
@@ -128,8 +128,8 @@ backend currently provides it.
 ## Uninstall
 
 ```bash
-gnome-extensions disable airpods-battery@ozcanpng
-gnome-extensions uninstall airpods-battery@ozcanpng
+gnome-extensions disable airpods-battery@ozcanpng.dev
+gnome-extensions uninstall airpods-battery@ozcanpng.dev
 ```
 
 The backend remains installed so other airpods-tui integrations continue to
