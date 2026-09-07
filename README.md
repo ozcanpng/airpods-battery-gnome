@@ -5,6 +5,27 @@ AirPods battery levels in the top panel. It uses
 [airpods-tui](https://github.com/annoyedmilk/airpods-tui) as its Bluetooth and
 Apple AACP backend.
 
+## What this extension adds
+
+This project deliberately does not reimplement Apple's AirPods protocol.
+`airpods-tui` owns the Bluetooth and Apple AACP layer: it connects to AirPods,
+identifies the model, and obtains battery data. This extension is the GNOME
+Shell presentation and reliability layer on top of that backend.
+
+```text
+AirPods → airpods-tui → battery data and connection status → GNOME Shell panel
+```
+
+Compared with using `airpods-tui` alone, this extension provides:
+
+- A compact GNOME top-panel indicator with an AirPods icon and left/right levels
+- A GNOME menu with battery details and a case level when the backend provides it
+- Clear live, stale, disconnected, and backend-unavailable states, so old values
+  are never presented as current battery data
+- Panel display preferences, including both batteries, lowest battery, or icon only
+- Hide-when-disconnected behaviour, accessible status text, and tooltips
+- A GNOME-native installation, enablement, and troubleshooting workflow
+
 ## Supported GNOME versions
 
 | GNOME Shell version | Status |
@@ -33,22 +54,43 @@ Bluetooth configuration or runs `sudo`.
 
 ## Install
 
-Install and start the backend first:
+### 1. Install and configure airpods-tui
+
+Follow the upstream [airpods-tui installation guide](https://github.com/annoyedmilk/airpods-tui#installation)
+first. It configures the Apple AACP backend. Its Apple DeviceID setup may require
+restarting Bluetooth and pairing your AirPods again.
+
+Enable the backend service and confirm that it can see the connected AirPods:
 
 ```bash
 systemctl --user enable --now airpods-tui.service
+airpods-tui --waybar
 ```
 
-Package this repository, then install the generated extension ZIP:
+The last command should report a connected AirPods device before you continue.
+
+### 2. Download and package the extension
 
 ```bash
+git clone https://github.com/ozcanpng/airpods-battery-gnome.git
+cd airpods-battery-gnome
 gnome-extensions pack --force --out-dir=dist --extra-source=icons --extra-source=LICENSE --extra-source=THIRD_PARTY_NOTICES.md .
+```
+
+### 3. Install and enable it
+
+```bash
 gnome-extensions install --force dist/airpods-battery@ozcanpng.shell-extension.zip
+```
+
+On X11, press `Alt+F2`, enter `r`, and press Enter. On Wayland, log out and
+back in. Then enable the extension:
+
+```bash
 gnome-extensions enable airpods-battery@ozcanpng
 ```
 
-On X11, press `Alt+F2`, enter `r`, and press Enter after changing extension
-code. On Wayland, log out and back in.
+Open the extension menu in the top panel to see status and battery details.
 
 ## Troubleshooting
 
