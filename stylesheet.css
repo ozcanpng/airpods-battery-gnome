@@ -16,3 +16,14 @@
 .airpods-panel-state-backend-down {
   opacity: 0.55;
 }
+
+.airpods-menu-actions-box {
+  spacing: 8px;
+}
+
+.airpods-menu-action-button {
+  border-radius: 999px;
+  min-height: 28px;
+  min-width: 28px;
+  padding: 6px;
+}

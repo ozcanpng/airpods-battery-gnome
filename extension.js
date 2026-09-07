@@ -53,9 +53,16 @@ class AirPodsIndicator extends PanelMenu.Button {
         this.menu.addMenuItem(this._caseItem);
         this.menu.addMenuItem(this._updatedItem);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this._refreshItem = new PopupMenu.PopupMenuItem('Refresh');
-        this._refreshItem.connect('activate', () => this.refresh());
-        this.menu.addMenuItem(this._refreshItem);
+        const actionsItem = new PopupMenu.PopupBaseMenuItem({reactive: false, style_class: 'airpods-menu-actions'});
+        const actionsBox = new St.BoxLayout({x_expand: true, x_align: Clutter.ActorAlign.END, style_class: 'airpods-menu-actions-box'});
+        this._refreshButton = this._createActionButton('view-refresh-symbolic', 'Refresh');
+        this._refreshButton.connect('clicked', () => this.refresh());
+        this._settingsButton = this._createActionButton('emblem-system-symbolic', 'Preferences');
+        this._settingsButton.connect('clicked', () => this._extension.openPreferences());
+        actionsBox.add_child(this._refreshButton);
+        actionsBox.add_child(this._settingsButton);
+        actionsItem.add_child(actionsBox);
+        this.menu.addMenuItem(actionsItem);
         this._startItem = new PopupMenu.PopupMenuItem('Start airpods-tui');
         this._startItem.connect('activate', () => this._startBackend());
         this.menu.addMenuItem(this._startItem);
@@ -86,6 +93,19 @@ class AirPodsIndicator extends PanelMenu.Button {
     _backendPath() {
         const local = GLib.build_filenamev([GLib.get_home_dir(), '.local', 'bin', 'airpods-tui']);
         return GLib.file_test(local, GLib.FileTest.IS_EXECUTABLE) ? local : 'airpods-tui';
+    }
+
+    _createActionButton(iconName, accessibleName) {
+        const button = new St.Button({
+            can_focus: true,
+            reactive: true,
+            style_class: 'button airpods-menu-action-button',
+            track_hover: true,
+        });
+        button.set_child(new St.Icon({icon_name: iconName, style_class: 'popup-menu-icon'}));
+        button.accessible_name = accessibleName;
+        button.set_tooltip_text(accessibleName);
+        return button;
     }
 
     _run(command, args) {
@@ -137,7 +157,7 @@ class AirPodsIndicator extends PanelMenu.Button {
         if (this._refreshing)
             return;
         this._refreshing = true;
-        this._refreshItem.label.text = 'Refreshing…';
+        this._refreshButton.reactive = false;
         try {
             const service = await this._run('systemctl', ['--user', 'is-active', 'airpods-tui.service']);
             if (!service.success || service.stdout.trim() !== 'active') {
@@ -167,7 +187,7 @@ class AirPodsIndicator extends PanelMenu.Button {
             this._render(State.LIVE, data, backend);
         } finally {
             this._refreshing = false;
-            this._refreshItem.label.text = 'Refresh';
+            this._refreshButton.reactive = true;
         }
     }
 
