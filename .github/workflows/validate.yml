@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install validation tools
-        run: sudo apt-get update && sudo apt-get install -y gettext-base gnome-shell libglib2.0-bin libxml2-utils nodejs
+        run: sudo apt-get update && sudo apt-get install -y gettext-base libglib2.0-bin libxml2-utils nodejs zip unzip
       - name: Validate metadata and sources
         run: |
           jq empty metadata.json
@@ -18,4 +18,9 @@ jobs:
           node --check prefs.js
           xmllint --noout icons/airpods-pair-symbolic.svg schemas/org.gnome.shell.extensions.airpods-battery.gschema.xml
           glib-compile-schemas --strict schemas
-          gnome-extensions pack --force --out-dir=dist --extra-source=icons --extra-source=LICENSE --extra-source=THIRD_PARTY_NOTICES.md .
+          mkdir -p dist
+          zip -r "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" \
+            metadata.json extension.js prefs.js stylesheet.css LICENSE THIRD_PARTY_NOTICES.md icons schemas
+          unzip -t "dist/airpods-battery@ozcanpng.dev.shell-extension.zip"
+          unzip -Z1 "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" | grep -qx 'metadata.json'
+          unzip -Z1 "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" | grep -qx 'schemas/gschemas.compiled'

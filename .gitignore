@@ -1,2 +1,4 @@
 *.shell-extension.zip
 schemas/gschemas.compiled
+schemas/gschemas.compiled
+dist/
