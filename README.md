@@ -25,6 +25,7 @@ Compared with using `airpods-tui` alone, this extension provides:
 - Panel display preferences, including both batteries, lowest battery, or icon only
 - Hide-when-disconnected behaviour, accessible status text, and tooltips
 - A GNOME-native installation, enablement, and troubleshooting workflow
+- An in-extension setup checker for the backend and its user service
 
 ## Supported GNOME versions
 
@@ -51,6 +52,10 @@ Compared with using `airpods-tui` alone, this extension provides:
 Follow its installation guide to configure `DeviceID`, restart Bluetooth, and
 re-pair your AirPods when required. This extension never changes system
 Bluetooth configuration or runs `sudo`.
+
+When installed from GNOME Extensions, open this extension's Preferences if it
+does not show battery levels. The **Setup** section checks whether
+`airpods-tui` and its user service are ready and links to the commands below.
 
 ## Install
 

@@ -278,7 +278,7 @@ class AirPodsIndicator extends PanelMenu.Button {
             this._titleItem.label.text = 'airpods-tui is unavailable';
             this._leftItem.label.text = 'Left AirPod: —';
             this._rightItem.label.text = 'Right AirPod: —';
-            this._updatedItem.label.text = 'Start the backend or see the installation guide';
+            this._updatedItem.label.text = 'Open Preferences for setup help';
             this._setAccessibleStatus('AirPods backend is unavailable.');
         }
     }

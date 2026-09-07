@@ -1,10 +1,38 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const DISPLAY_MODES = ['both', 'lowest', 'icon'];
+
+function backendPath() {
+    const local = GLib.build_filenamev([GLib.get_home_dir(), '.local', 'bin', 'airpods-tui']);
+    if (GLib.file_test(local, GLib.FileTest.IS_EXECUTABLE))
+        return local;
+    return GLib.find_program_in_path('airpods-tui') ?? 'airpods-tui';
+}
+
+function run(command, args) {
+    return new Promise(resolve => {
+        let process;
+        try {
+            process = Gio.Subprocess.new([command, ...args], Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
+        } catch (error) {
+            resolve({success: false, stdout: ''});
+            return;
+        }
+        process.communicate_utf8_async(null, null, (source, result) => {
+            try {
+                const [, stdout] = source.communicate_utf8_finish(result);
+                resolve({success: source.get_successful(), stdout: stdout ?? ''});
+            } catch (error) {
+                resolve({success: false, stdout: ''});
+            }
+        });
+    });
+}
 
 export default class AirPodsBatteryPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -40,15 +68,53 @@ export default class AirPodsBatteryPreferences extends ExtensionPreferences {
         settings.bind('stale-timeout-minutes', timeoutRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         dataGroup.add(timeoutRow);
 
-        const backendGroup = new Adw.PreferencesGroup({title: 'Backend setup'});
-        backendGroup.add(new Adw.ActionRow({
-            title: 'airpods-tui manages the AirPods connection',
-            subtitle: 'Install and start its user service before enabling this extension.',
+        const backendGroup = new Adw.PreferencesGroup({
+            title: 'Setup',
+            description: 'This extension only reads battery data. airpods-tui must be installed and configured once.',
+        });
+        const backendRow = new Adw.ActionRow({title: 'airpods-tui', subtitle: 'Checking…'});
+        const serviceRow = new Adw.ActionRow({title: 'User service', subtitle: 'Checking…'});
+        const appleRow = new Adw.ActionRow({
+            title: 'Apple AACP setup',
+            subtitle: 'Set the Apple DeviceID in BlueZ, restart Bluetooth, then pair AirPods again if needed.',
+        });
+        const guideRow = new Adw.ActionRow({
+            title: 'Installation guide',
+            subtitle: 'Includes the required Ubuntu commands and troubleshooting steps.',
+        });
+        guideRow.add_suffix(new Gtk.LinkButton({
+            label: 'Open guide',
+            uri: 'https://github.com/ozcanpng/airpods-battery-gnome#install',
+            valign: Gtk.Align.CENTER,
         }));
-        backendGroup.add(new Adw.ActionRow({
-            title: 'Low-battery notifications and charging state',
-            subtitle: 'These are provided by airpods-tui to avoid duplicate notifications.',
-        }));
+        const checkButton = new Gtk.Button({icon_name: 'view-refresh-symbolic', valign: Gtk.Align.CENTER});
+        checkButton.tooltip_text = 'Check setup again';
+        backendRow.add_suffix(checkButton);
+        backendGroup.add(backendRow);
+        backendGroup.add(serviceRow);
+        backendGroup.add(appleRow);
+        backendGroup.add(guideRow);
+
+        const refreshSetup = async () => {
+            checkButton.sensitive = false;
+            backendRow.subtitle = 'Checking…';
+            serviceRow.subtitle = 'Checking…';
+            const backend = await run(backendPath(), ['--version']);
+            if (!backend.success) {
+                backendRow.subtitle = 'Not installed. Open the guide to install it.';
+                serviceRow.subtitle = 'Unavailable until airpods-tui is installed.';
+                checkButton.sensitive = true;
+                return;
+            }
+            backendRow.subtitle = backend.stdout.trim() || 'Installed';
+            const service = await run('systemctl', ['--user', 'is-active', 'airpods-tui.service']);
+            serviceRow.subtitle = service.success && service.stdout.trim() === 'active'
+                ? 'Running'
+                : 'Stopped — run: systemctl --user enable --now airpods-tui.service';
+            checkButton.sensitive = true;
+        };
+        checkButton.connect('clicked', () => refreshSetup());
+        refreshSetup();
 
         const aboutGroup = new Adw.PreferencesGroup({title: 'About'});
         const aboutRow = new Adw.ActionRow({
