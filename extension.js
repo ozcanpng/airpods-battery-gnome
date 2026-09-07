@@ -104,7 +104,6 @@ class AirPodsIndicator extends PanelMenu.Button {
         });
         button.set_child(new St.Icon({icon_name: iconName, style_class: 'popup-menu-icon'}));
         button.accessible_name = accessibleName;
-        button.set_tooltip_text(accessibleName);
         return button;
     }
 
@@ -185,6 +184,8 @@ class AirPodsIndicator extends PanelMenu.Button {
                 return;
             }
             this._render(State.LIVE, data, backend);
+        } catch (error) {
+            this._render(State.BACKEND_DOWN);
         } finally {
             this._refreshing = false;
             this._refreshButton.reactive = true;
