@@ -40,14 +40,31 @@ export default class AirPodsBatteryPreferences extends ExtensionPreferences {
         settings.bind('stale-timeout-minutes', timeoutRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         dataGroup.add(timeoutRow);
 
-        const aboutGroup = new Adw.PreferencesGroup({title: 'Backend'});
-        aboutGroup.add(new Adw.ActionRow({
+        const backendGroup = new Adw.PreferencesGroup({title: 'Backend setup'});
+        backendGroup.add(new Adw.ActionRow({
             title: 'airpods-tui manages the AirPods connection',
-            subtitle: 'Low-battery notifications and charging state are provided by the backend.',
+            subtitle: 'Install and start its user service before enabling this extension.',
         }));
+        backendGroup.add(new Adw.ActionRow({
+            title: 'Low-battery notifications and charging state',
+            subtitle: 'These are provided by airpods-tui to avoid duplicate notifications.',
+        }));
+
+        const aboutGroup = new Adw.PreferencesGroup({title: 'About'});
+        const aboutRow = new Adw.ActionRow({
+            title: 'AirPods Battery for GNOME',
+            subtitle: 'GNOME Shell 46 · GPL-3.0-or-later',
+        });
+        aboutRow.add_suffix(new Gtk.LinkButton({
+            label: 'Project page',
+            uri: 'https://github.com/ozcanpng/airpods-battery-gnome',
+            valign: Gtk.Align.CENTER,
+        }));
+        aboutGroup.add(aboutRow);
 
         page.add(panelGroup);
         page.add(dataGroup);
+        page.add(backendGroup);
         page.add(aboutGroup);
         window.add(page);
     }

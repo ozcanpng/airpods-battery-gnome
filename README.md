@@ -56,9 +56,27 @@ Bluetooth configuration or runs `sudo`.
 
 ### 1. Install and configure airpods-tui
 
-Follow the upstream [airpods-tui installation guide](https://github.com/annoyedmilk/airpods-tui#installation)
-first. It configures the Apple AACP backend. Its Apple DeviceID setup may require
-restarting Bluetooth and pairing your AirPods again.
+On Ubuntu, install the backend from source with the following commands:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential cargo git libdbus-1-dev libpulse-dev pkg-config
+git clone https://github.com/annoyedmilk/airpods-tui.git
+cd airpods-tui
+cargo build --release
+sudo install -Dm755 target/release/airpods-tui /usr/bin/airpods-tui
+sudo install -Dm644 airpods-tui.service /usr/lib/systemd/user/airpods-tui.service
+```
+
+Enable Apple AACP support, then restart Bluetooth:
+
+```bash
+sudo sed -i '/^\[General\]/a DeviceID = bluetooth:004C:0000:0000' /etc/bluetooth/main.conf
+sudo systemctl restart bluetooth
+```
+
+If the AirPods were paired before this change, remove them from Bluetooth
+settings and pair them again. Then enable the backend service:
 
 Enable the backend service and confirm that it can see the connected AirPods:
 
@@ -68,6 +86,9 @@ airpods-tui --waybar
 ```
 
 The last command should report a connected AirPods device before you continue.
+
+For Arch and Omarchy installation, use the upstream
+[airpods-tui installation guide](https://github.com/annoyedmilk/airpods-tui#installation).
 
 ### 2. Download and package the extension
 

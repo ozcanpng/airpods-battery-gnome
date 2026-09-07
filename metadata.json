@@ -1,8 +1,9 @@
 {
   "uuid": "airpods-battery@ozcanpng",
   "name": "AirPods Battery for GNOME",
-  "description": "Shows live AirPods battery levels in the GNOME top panel.",
+  "description": "Shows live left and right AirPods battery levels in the GNOME top panel.\n\nRequires airpods-tui for Bluetooth and Apple AACP support. The extension adds a GNOME panel indicator, battery menu, stale-data protection, backend status, and preferences.",
   "settings-schema": "org.gnome.shell.extensions.airpods-battery",
+  "url": "https://github.com/ozcanpng/airpods-battery-gnome",
   "shell-version": ["46"],
   "version": 1
 }
