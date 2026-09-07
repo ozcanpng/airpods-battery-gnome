@@ -298,13 +298,27 @@ class AirPodsIndicator extends PanelMenu.Button {
 export default class AirPodsBatteryExtension extends Extension {
     enable() {
         this._indicator = new AirPodsIndicator(this);
-        Main.panel.addToStatusArea(this.uuid, this._indicator, 0, 'right');
+        this._positionSettings = this.getSettings();
+        this._positionChangedId = this._positionSettings.connect('changed::panel-position', () => this._moveIndicator());
+        this._moveIndicator();
         this._indicator.start();
     }
 
     disable() {
+        if (this._positionChangedId)
+            this._positionSettings.disconnect(this._positionChangedId);
+        this._positionChangedId = null;
+        this._positionSettings = null;
         this._indicator.stop();
         this._indicator.destroy();
         this._indicator = null;
+    }
+
+    _moveIndicator() {
+        const container = this._indicator.container ?? this._indicator;
+        container.get_parent()?.remove_child(container);
+        delete Main.panel.statusArea[this.uuid];
+        const position = this._positionSettings.get_string('panel-position');
+        Main.panel.addToStatusArea(this.uuid, this._indicator, 0, position);
     }
 }

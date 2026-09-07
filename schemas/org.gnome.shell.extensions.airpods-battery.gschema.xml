@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="airpods-battery">
   <schema id="org.gnome.shell.extensions.airpods-battery" path="/org/gnome/shell/extensions/airpods-battery/">
+    <key name="panel-position" type="s">
+      <choices>
+        <choice value="left"/>
+        <choice value="right"/>
+      </choices>
+      <default>'right'</default>
+      <summary>Panel position</summary>
+      <description>Place the indicator on the left or right side of the top panel.</description>
+    </key>
     <key name="panel-display" type="s">
       <default>'both'</default>
       <summary>Panel display mode</summary>

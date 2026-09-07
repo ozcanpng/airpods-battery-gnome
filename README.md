@@ -24,7 +24,7 @@ Compared with using `airpods-tui` alone, this extension provides:
 - A GNOME menu with battery details and a case level when the backend provides it
 - Clear live, stale, disconnected, and backend-unavailable states, so old values
   are never presented as current battery data
-- Panel display preferences, including both batteries, lowest battery, or icon only
+- Panel position and display preferences, including both batteries, lowest battery, or icon only
 - Hide-when-disconnected behaviour, accessible status text, and tooltips
 - A GNOME-native installation, enablement, and troubleshooting workflow
 - An in-extension setup checker for the backend and its user service

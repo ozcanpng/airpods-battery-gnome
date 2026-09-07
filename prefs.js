@@ -6,6 +6,7 @@ import Gtk from 'gi://Gtk';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const DISPLAY_MODES = ['both', 'lowest', 'icon'];
+const PANEL_POSITIONS = ['right', 'left'];
 
 function backendPath() {
     const local = GLib.build_filenamev([GLib.get_home_dir(), '.local', 'bin', 'airpods-tui']);
@@ -39,6 +40,18 @@ export default class AirPodsBatteryPreferences extends ExtensionPreferences {
         const settings = this.getSettings();
         const page = new Adw.PreferencesPage();
         const panelGroup = new Adw.PreferencesGroup({title: 'Panel'});
+        const positionRow = new Adw.ComboRow({
+            title: 'Panel position',
+            subtitle: 'Right is the standard location for system indicators',
+            model: Gtk.StringList.new(['Right', 'Left']),
+        });
+        positionRow.selected = Math.max(0, PANEL_POSITIONS.indexOf(settings.get_string('panel-position')));
+        positionRow.connect('notify::selected', () => settings.set_string('panel-position', PANEL_POSITIONS[positionRow.selected]));
+        settings.connect('changed::panel-position', () => {
+            positionRow.selected = Math.max(0, PANEL_POSITIONS.indexOf(settings.get_string('panel-position')));
+        });
+        panelGroup.add(positionRow);
+
         const displayRow = new Adw.ComboRow({
             title: 'Panel display',
             subtitle: 'Choose the battery information shown in the top panel',
