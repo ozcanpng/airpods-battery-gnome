@@ -320,5 +320,19 @@ export default class AirPodsBatteryExtension extends Extension {
         delete Main.panel.statusArea[this.uuid];
         const position = this._positionSettings.get_string('panel-position');
         Main.panel.addToStatusArea(this.uuid, this._indicator, 0, position);
+
+        const box = position === 'left' ? Main.panel._leftBox : Main.panel._rightBox;
+        const anchor = position === 'left'
+            ? Main.panel.statusArea.activities
+            : Main.panel.statusArea.quickSettings;
+        const anchorContainer = anchor?.container ?? anchor;
+        const anchorIndex = box.get_children().indexOf(anchorContainer);
+
+        // Keep the indicator beside GNOME's built-in controls, not among other extensions.
+        if (anchorIndex >= 0) {
+            box.remove_child(container);
+            const index = position === 'left' ? anchorIndex + 1 : anchorIndex;
+            box.insert_child_at_index(container, index);
+        }
     }
 }
