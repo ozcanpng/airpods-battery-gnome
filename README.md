@@ -1,6 +1,6 @@
 # AirPods Battery for GNOME
 
-An English-language GNOME Shell extension that shows live left and right
+GNOME Shell extension that shows live left and right
 AirPods battery levels in the top panel. It uses
 [airpods-tui](https://github.com/annoyedmilk/airpods-tui) as its Bluetooth and
 Apple AACP backend.
