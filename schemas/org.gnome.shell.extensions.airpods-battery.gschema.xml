@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="airpods-battery">
+  <schema id="org.gnome.shell.extensions.airpods-battery" path="/org/gnome/shell/extensions/airpods-battery/">
+    <key name="panel-display" type="s">
+      <default>'both'</default>
+      <summary>Panel display mode</summary>
+      <description>Show both batteries, the lowest battery, or the icon only.</description>
+    </key>
+    <key name="hide-when-disconnected" type="b">
+      <default>true</default>
+      <summary>Hide when disconnected</summary>
+    </key>
+    <key name="show-case-battery" type="b">
+      <default>true</default>
+      <summary>Show case battery in the menu</summary>
+    </key>
+    <key name="stale-timeout-minutes" type="u">
+      <default>15</default>
+      <range min="5" max="60"/>
+      <summary>Battery data stale timeout</summary>
+    </key>
+  </schema>
+</schemalist>

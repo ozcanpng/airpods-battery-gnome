@@ -1,0 +1,18 @@
+.airpods-panel-box {
+  spacing: 4px;
+}
+
+.airpods-panel-icon {
+  icon-size: 20px;
+  margin-left: 2px;
+}
+
+.airpods-panel-percentage {
+  min-width: 31px;
+  margin-right: 2px;
+}
+
+.airpods-panel-state-stale,
+.airpods-panel-state-backend-down {
+  opacity: 0.55;
+}

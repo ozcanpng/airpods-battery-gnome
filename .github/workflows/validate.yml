@@ -1,0 +1,21 @@
+name: Validate extension
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install validation tools
+        run: sudo apt-get update && sudo apt-get install -y gettext-base libglib2.0-bin libxml2-utils nodejs
+      - name: Validate metadata and sources
+        run: |
+          jq empty metadata.json
+          node --check extension.js
+          node --check prefs.js
+          xmllint --noout icons/airpods-pair-symbolic.svg schemas/org.gnome.shell.extensions.airpods-battery.gschema.xml
+          glib-compile-schemas --strict schemas
+          gnome-extensions pack --force --out-dir=dist --extra-source=icons --extra-source=LICENSE --extra-source=THIRD_PARTY_NOTICES.md .
