@@ -326,11 +326,11 @@ export default class AirPodsBatteryExtension extends Extension {
             ? Main.panel.statusArea.activities
             : Main.panel.statusArea.quickSettings;
         const anchorContainer = anchor?.container ?? anchor;
-        const anchorIndex = box.get_children().indexOf(anchorContainer);
 
         // Keep the indicator beside GNOME's built-in controls, not among other extensions.
-        if (anchorIndex >= 0) {
+        if (box.get_children().includes(anchorContainer)) {
             box.remove_child(container);
+            const anchorIndex = box.get_children().indexOf(anchorContainer);
             const index = position === 'left' ? anchorIndex + 1 : anchorIndex;
             box.insert_child_at_index(container, index);
         }
