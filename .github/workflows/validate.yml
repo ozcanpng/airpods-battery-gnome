@@ -20,7 +20,8 @@ jobs:
           glib-compile-schemas --strict schemas
           mkdir -p dist
           zip -r "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" \
-            metadata.json extension.js prefs.js stylesheet.css LICENSE THIRD_PARTY_NOTICES.md icons schemas
+            metadata.json extension.js prefs.js stylesheet.css LICENSE THIRD_PARTY_NOTICES.md icons schemas \
+            -x 'schemas/gschemas.compiled'
           unzip -t "dist/airpods-battery@ozcanpng.dev.shell-extension.zip"
           unzip -Z1 "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" | grep -qx 'metadata.json'
-          unzip -Z1 "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" | grep -qx 'schemas/gschemas.compiled'
+          unzip -Z1 "dist/airpods-battery@ozcanpng.dev.shell-extension.zip" | grep -qx 'schemas/org.gnome.shell.extensions.airpods-battery.gschema.xml'
