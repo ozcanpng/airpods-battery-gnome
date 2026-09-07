@@ -2,6 +2,7 @@
   "uuid": "airpods-battery@ozcanpng",
   "name": "AirPods Battery for GNOME",
   "description": "Shows live AirPods battery levels in the GNOME top panel.",
+  "settings-schema": "org.gnome.shell.extensions.airpods-battery",
   "shell-version": ["46"],
   "version": 1
 }
