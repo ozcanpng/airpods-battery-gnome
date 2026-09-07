@@ -1,15 +1,18 @@
 .airpods-panel-box {
-  spacing: 4px;
+  spacing: 3px;
 }
 
 .airpods-panel-icon {
-  icon-size: 20px;
-  margin-left: 2px;
+  icon-size: 18px;
+  margin-left: 1px;
 }
 
 .airpods-panel-percentage {
-  min-width: 31px;
-  margin-right: 2px;
+  min-width: 27px;
+}
+
+.airpods-panel-separator {
+  opacity: 0.65;
 }
 
 .airpods-panel-state-stale,
@@ -18,12 +21,12 @@
 }
 
 .airpods-menu-actions-box {
-  spacing: 8px;
+  spacing: 6px;
 }
 
 .airpods-menu-action-button {
-  border-radius: 999px;
-  min-height: 28px;
-  min-width: 28px;
-  padding: 6px;
+  border-radius: 7px;
+  min-height: 26px;
+  min-width: 26px;
+  padding: 5px;
 }

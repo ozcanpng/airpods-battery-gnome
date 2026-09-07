@@ -33,10 +33,12 @@ class AirPodsIndicator extends PanelMenu.Button {
             style_class: 'system-status-icon airpods-panel-icon',
         });
         this._leftLabel = new St.Label({style_class: 'airpods-panel-percentage', y_align: Clutter.ActorAlign.CENTER});
+        this._separatorLabel = new St.Label({text: '·', style_class: 'airpods-panel-separator', y_align: Clutter.ActorAlign.CENTER});
         this._rightLabel = new St.Label({style_class: 'airpods-panel-percentage', y_align: Clutter.ActorAlign.CENTER});
         this._lowestLabel = new St.Label({style_class: 'airpods-panel-percentage', y_align: Clutter.ActorAlign.CENTER});
         panelBox.add_child(this._icon);
         panelBox.add_child(this._leftLabel);
+        panelBox.add_child(this._separatorLabel);
         panelBox.add_child(this._rightLabel);
         panelBox.add_child(this._lowestLabel);
         this.add_child(panelBox);
@@ -54,18 +56,19 @@ class AirPodsIndicator extends PanelMenu.Button {
         this.menu.addMenuItem(this._updatedItem);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const actionsItem = new PopupMenu.PopupBaseMenuItem({reactive: false, style_class: 'airpods-menu-actions'});
-        const actionsBox = new St.BoxLayout({x_expand: true, x_align: Clutter.ActorAlign.END, style_class: 'airpods-menu-actions-box'});
+        const actionsBox = new St.BoxLayout({x_expand: true, x_align: Clutter.ActorAlign.CENTER, style_class: 'airpods-menu-actions-box'});
         this._refreshButton = this._createActionButton('view-refresh-symbolic', 'Refresh');
         this._refreshButton.connect('clicked', () => this.refresh());
-        this._settingsButton = this._createActionButton('emblem-system-symbolic', 'Preferences');
+        this._settingsButton = this._createActionButton('preferences-system-symbolic', 'Preferences');
         this._settingsButton.connect('clicked', () => this._extension.openPreferences());
+        this._startButton = this._createActionButton('media-playback-start-symbolic', 'Start airpods-tui');
+        this._startButton.connect('clicked', () => this._startBackend());
+        this._startButton.visible = false;
         actionsBox.add_child(this._refreshButton);
         actionsBox.add_child(this._settingsButton);
+        actionsBox.add_child(this._startButton);
         actionsItem.add_child(actionsBox);
         this.menu.addMenuItem(actionsItem);
-        this._startItem = new PopupMenu.PopupMenuItem('Start airpods-tui');
-        this._startItem.connect('activate', () => this._startBackend());
-        this.menu.addMenuItem(this._startItem);
 
         this._settings.connectObject(
             'changed::panel-display', () => this.refresh(),
@@ -152,12 +155,36 @@ class AirPodsIndicator extends PanelMenu.Button {
         }
     }
 
+    _batteryDataFromBackend(backend) {
+        const values = {};
+        const tooltip = backend?.tooltip ?? '';
+        const matchBattery = name => tooltip.match(new RegExp(`^${name}:\\s*(\\d+)%`, 'm'));
+        const left = matchBattery('L');
+        const right = matchBattery('R');
+        const headphones = matchBattery('H');
+        if (left)
+            values.LEFT = Number(left[1]);
+        if (right)
+            values.RIGHT = Number(right[1]);
+        if (headphones)
+            values.HEADPHONE = Number(headphones[1]);
+
+        // The daemon's env file may additionally contain the last observed case value.
+        const fileData = this._readBatteryFile();
+        if (fileData?.values.CASE !== undefined)
+            values.CASE = fileData.values.CASE;
+
+        if (values.LEFT === undefined && values.RIGHT === undefined && values.HEADPHONE === undefined)
+            return null;
+        return {values, ageSeconds: 0};
+    }
+
     async refresh() {
         if (this._refreshing)
             return;
-        this._refreshing = true;
-        this._refreshButton.reactive = false;
         try {
+            this._refreshing = true;
+            this._refreshButton.reactive = false;
             const service = await this._run('systemctl', ['--user', 'is-active', 'airpods-tui.service']);
             if (!service.success || service.stdout.trim() !== 'active') {
                 this._render(State.BACKEND_DOWN);
@@ -178,24 +205,30 @@ class AirPodsIndicator extends PanelMenu.Button {
                 this._render(State.DISCONNECTED);
                 return;
             }
-            const data = this._readBatteryFile();
-            if (!data || data.ageSeconds > this._settings.get_uint('stale-timeout-minutes') * 60) {
+            const data = this._batteryDataFromBackend(backend);
+            if (!data) {
                 this._render(State.STALE, null, backend);
                 return;
             }
             this._render(State.LIVE, data, backend);
         } catch (error) {
-            this._render(State.BACKEND_DOWN);
+            console.error(`AirPods Battery refresh failed: ${error.message}`);
+            try {
+                this._render(State.BACKEND_DOWN);
+            } catch (renderError) {
+                console.error(`AirPods Battery render failed: ${renderError.message}`);
+            }
         } finally {
             this._refreshing = false;
-            this._refreshButton.reactive = true;
+            if (this._refreshButton)
+                this._refreshButton.reactive = true;
         }
     }
 
     async _startBackend() {
-        this._startItem.label.text = 'Starting…';
+        this._startButton.reactive = false;
         await this._run('systemctl', ['--user', 'start', 'airpods-tui.service']);
-        this._startItem.label.text = 'Start airpods-tui';
+        this._startButton.reactive = true;
         this.refresh();
     }
 
@@ -208,6 +241,7 @@ class AirPodsIndicator extends PanelMenu.Button {
         const active = state === State.LIVE;
         const display = this._settings.get_string('panel-display');
         this._leftLabel.visible = active && display === 'both';
+        this._separatorLabel.visible = active && display === 'both';
         this._rightLabel.visible = active && display === 'both';
         this._lowestLabel.visible = active && display === 'lowest';
         this._leftLabel.text = left === undefined ? '—' : `${left}%`;
@@ -216,7 +250,7 @@ class AirPodsIndicator extends PanelMenu.Button {
         this._icon.set_style_class_name(`system-status-icon airpods-panel-icon airpods-panel-state-${state}`);
 
         this._caseItem.visible = this._settings.get_boolean('show-case-battery') && caseBattery !== undefined;
-        this._startItem.visible = state === State.BACKEND_DOWN;
+        this._startButton.visible = state === State.BACKEND_DOWN;
         this.visible = !(state === State.DISCONNECTED && this._settings.get_boolean('hide-when-disconnected'));
 
         if (state === State.LIVE) {
@@ -258,7 +292,6 @@ class AirPodsIndicator extends PanelMenu.Button {
 
     _setAccessibleStatus(text) {
         this.accessible_name = text;
-        this.set_tooltip_text(text);
     }
 });
 
