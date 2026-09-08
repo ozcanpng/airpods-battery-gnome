@@ -19,9 +19,10 @@
       <default>true</default>
       <summary>Hide when disconnected</summary>
     </key>
-    <key name="show-case-battery" type="b">
+    <key name="show-case-battery-in-panel" type="b">
       <default>true</default>
-      <summary>Show case battery in the menu</summary>
+      <summary>Show case battery in the panel</summary>
+      <description>Show the charging case icon and battery percentage beside the AirPods levels.</description>
     </key>
     <key name="stale-timeout-minutes" type="u">
       <default>15</default>

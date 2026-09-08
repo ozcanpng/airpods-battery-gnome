@@ -68,8 +68,11 @@ export default class AirPodsBatteryPreferences extends ExtensionPreferences {
         settings.bind('hide-when-disconnected', hideRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         panelGroup.add(hideRow);
 
-        const caseRow = new Adw.SwitchRow({title: 'Show charging case in menu'});
-        settings.bind('show-case-battery', caseRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        const caseRow = new Adw.SwitchRow({
+            title: 'Show charging case with AirPods',
+            subtitle: 'Add the case icon and battery level to the top panel',
+        });
+        settings.bind('show-case-battery-in-panel', caseRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         panelGroup.add(caseRow);
 
         const dataGroup = new Adw.PreferencesGroup({title: 'Battery data'});

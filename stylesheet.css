@@ -30,3 +30,8 @@
   min-width: 26px;
   padding: 5px;
 }
+
+.airpods-battery-menu-icon {
+  icon-size: 20px;
+  margin-right: 8px;
+}

@@ -21,7 +21,7 @@ AirPods → airpods-tui → battery data and connection status → GNOME Shell p
 Compared with using `airpods-tui` alone, this extension provides:
 
 - A compact GNOME top-panel indicator with an AirPods icon and left/right levels
-- A GNOME menu with battery details and a case level when the backend provides it
+- A GNOME menu with a case icon and case level above the individual AirPods when the backend provides it
 - Clear live, stale, disconnected, and backend-unavailable states, so old values
   are never presented as current battery data
 - Panel position and display preferences, including both batteries, lowest battery, or icon only
@@ -39,7 +39,7 @@ Compared with using `airpods-tui` alone, this extension provides:
 ## Features
 
 - AirPods pair icon with left and right battery percentages
-- Menu details for left, right, and case battery when available
+- Case battery in the menu, with an optional case icon and percentage in the panel
 - Live, stale, disconnected, and backend-unavailable states
 - Optional hide when disconnected, icon-only, and lowest-battery panel modes
 - Accessible status text and tooltips
