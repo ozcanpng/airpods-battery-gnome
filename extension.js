@@ -87,6 +87,8 @@ class AirPodsIndicator extends PanelMenu.Button {
     }
 
     start() {
+        this._stopped = false;
+        this._watchBluetooth();
         this.refresh();
         this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POLL_SECONDS, () => {
             this.refresh();
@@ -95,10 +97,62 @@ class AirPodsIndicator extends PanelMenu.Button {
     }
 
     stop() {
+        this._stopped = true;
+        this._bluetoothCancellable?.cancel();
+        this._bluetoothCancellable = null;
+        if (this._bluetoothManager) {
+            for (const id of this._bluetoothSignals)
+                this._bluetoothManager.disconnect(id);
+        }
+        this._bluetoothManager = null;
         if (this._timeoutId)
             GLib.Source.remove(this._timeoutId);
         this._timeoutId = null;
         this._settings.disconnectObject(this);
+    }
+
+    _watchBluetooth() {
+        this._bluetoothCancellable = new Gio.Cancellable();
+        Gio.DBusObjectManagerClient.new_for_bus(
+            Gio.BusType.SYSTEM, Gio.DBusObjectManagerClientFlags.DO_NOT_AUTO_START,
+            'org.bluez', '/', null, this._bluetoothCancellable, (source, result) => {
+                try {
+                    const manager = Gio.DBusObjectManagerClient.new_for_bus_finish(result);
+                    if (this._stopped)
+                        return;
+                    this._bluetoothManager = manager;
+                    const update = () => {
+                        if (this._airPodsConnected() === false)
+                            this._render(State.DISCONNECTED);
+                        this.refresh();
+                    };
+                    this._bluetoothSignals = [
+                        manager.connect('interface-proxy-properties-changed', update),
+                        manager.connect('object-added', update),
+                        manager.connect('object-removed', update),
+                        manager.connect('notify::name-owner', update),
+                    ];
+                    update();
+                } catch (error) {
+                    if (!this._stopped)
+                        console.error(`AirPods Battery Bluetooth monitor failed: ${error.message}`);
+                }
+            });
+    }
+
+    _airPodsConnected() {
+        if (!this._bluetoothManager?.get_name_owner())
+            return this._bluetoothManager ? false : null;
+        return this._bluetoothManager.get_objects().some(object => {
+            const device = object.get_interface('org.bluez.Device1');
+            if (!device)
+                return false;
+            const property = name => device.get_cached_property(name)?.deep_unpack();
+            const name = `${property('Name') ?? ''} ${property('Alias') ?? ''}`;
+            const appleAudio = /^bluetooth:v004C/i.test(property('Modalias') ?? '') &&
+                property('Icon') === 'audio-headphones';
+            return (appleAudio || /airpods/i.test(name)) && property('Connected') === true;
+        });
     }
 
     _backendPath() {
@@ -214,6 +268,10 @@ class AirPodsIndicator extends PanelMenu.Button {
         try {
             this._refreshing = true;
             this._refreshButton.reactive = false;
+            if (this._airPodsConnected() === false) {
+                this._render(State.DISCONNECTED);
+                return;
+            }
             const service = await this._run('systemctl', ['--user', 'is-active', 'airpods-tui.service']);
             if (!service.success || service.stdout.trim() !== 'active') {
                 this._render(State.BACKEND_DOWN);
@@ -262,6 +320,14 @@ class AirPodsIndicator extends PanelMenu.Button {
     }
 
     _render(state, data = null, backend = null) {
+        if (this._stopped)
+            return;
+        // BlueZ is authoritative for physical connectivity, even if the daemon
+        // is restarting or returns a cached connected response.
+        if (this._airPodsConnected() === false) {
+            state = State.DISCONNECTED;
+            data = null;
+        }
         const values = data?.values ?? {};
         const left = values.LEFT;
         const right = values.RIGHT;
